@@ -2,15 +2,16 @@
 
 Um projeto de validação de conceitos em infraestrutura AWS com assistência de IA para desenvolvimento da aplicação.
 
-> **📌 Nota Importante:** A infraestrutura AWS (VPC, EC2, ELB, EFS, Security Groups) foi projetada e implementada por mim. A aplicação Flask/Frontend foi desenvolvida com assistência de IA, permitindo focar no aspecto crucial: **design e deployment de infraestrutura em nuvem**.
+> **📌 Nota Importante:** A infraestrutura AWS (VPC, EC2, ELB, EFS, Security Groups) foi projetada e implementada por mim. A aplicação Flask/Frontend foi desenvolvida com assistência de IA, permitindo focar no que importa: infraestrutura robusta na cloud.
 
 ## 🎯 Funcionalidades
 
 ✅ **Upload de Arquivos** - Envie arquivos para o diretório NFS  
 ✅ **Download de Arquivos** - Baixe arquivos armazenados no NFS  
 ✅ **Listar Arquivos** - Visualize todos os arquivos disponíveis  
-✅ **Interface Web** - UI simples e responsiva  
+✅ **Interface Web** - UI simples, responsiva e intuitiva  
 ✅ **API REST** - Endpoints documentados para integração  
+✅ **Health Checks** - Monitoramento automático da aplicação  
 
 ## 🏗️ Arquitetura
 
@@ -30,6 +31,7 @@ Um projeto de validação de conceitos em infraestrutura AWS com assistência de
 │   EC2 #1     │        │    EC2 #2     │
 │  Ubuntu 22   │        │   Ubuntu 22   │
 │   Flask App  │        │   Flask App   │
+│  Gunicorn    │        │  Gunicorn     │
 └───────┬──────┘        └────────┬──────┘
         │                        │
         └────────────┬───────────┘
@@ -47,16 +49,19 @@ Um projeto de validação de conceitos em infraestrutura AWS com assistência de
 - Python 3.9+
 - pip3
 - Conexão SSH para as instâncias
+- Git instalado
 
 ## 🚀 Quick Start
 
 ### 1. Clone o repositório
+
 ```bash
 git clone https://github.com/GusVitor/nfs-file-manager.git
 cd nfs-file-manager
 ```
 
 ### 2. Configure a Infraestrutura AWS
+
 Siga o guia completo em **[SETUP-AWS.md](./SETUP-AWS.md)**
 
 Você irá criar:
@@ -67,16 +72,25 @@ Você irá criar:
 - ✅ Elastic Load Balancer com Health Checks
 
 ### 3. Deploy na Instância EC2
+
 Siga o passo a passo em **[DEPLOYMENT.md](./DEPLOYMENT.md)**
 
 Você irá:
 - ✅ Clonar o repositório
-- ✅ Instalar dependências
-- ✅ Montar o NFS
+- ✅ Instalar dependências Python
+- ✅ Montar o NFS (EFS)
 - ✅ Configurar a aplicação Flask
 - ✅ Iniciar o serviço com systemd
+- ✅ Configurar Gunicorn como servidor WSGI
 
-## 📖 Documentação
+### 4. Testar a Aplicação
+
+Acesse via Load Balancer:
+```
+http://nfs-alb-xxxxx.region.elb.amazonaws.com
+```
+
+## 📖 Documentação Completa
 
 | Documento | Descrição |
 |-----------|-----------|
@@ -90,7 +104,7 @@ Você irá:
 |-----------|-----------|---------|
 | Backend | Python 3.9+ / Flask 2.3+ | IA Assistida |
 | Frontend | HTML5, CSS3, Vanilla JavaScript | IA Assistida |
-| Servidor Web | Gunicorn | IA Assistida |
+| Servidor Web | Gunicorn + Nginx | IA Assistida |
 | **Infraestrutura** | **AWS (EC2, ELB, VPC, EFS)** | **👤 Minha Autoria** |
 | **SO** | **Ubuntu Server 22.04 LTS** | **👤 Minha Autoria** |
 | **Armazenamento** | **NFS (Network File System) / EFS** | **👤 Minha Autoria** |
@@ -103,13 +117,15 @@ nfs-file-manager/
 ├── SETUP-AWS.md                 # 👤 Minha Autoria - Infraestrutura
 ├── DEPLOYMENT.md                # 👤 Minha Autoria - Deploy
 ├── API.md                       # Documentação API
-├── requirements.txt             # Dependências Python (IA)
-├── app.py                       # Backend Flask (IA)
-├── .gitignore                   # Configuração
-└── static/
-    ├── index.html               # Frontend (IA)
-    ├── style.css                # Estilos CSS (IA)
-    └── script.js                # Lógica JavaScript (IA)
+├── requirements.txt             # Dependências Python
+├── app.py                       # Backend Flask
+├── .gitignore                   # Configuração Git
+├── templates/
+│   └── index.html               # Template HTML
+├── static/
+│   ├── style.css                # Estilos CSS
+│   └── script.js                # Lógica JavaScript
+└── venv/                        # Python Virtual Environment
 ```
 
 ## 🔄 Por Que IA na Aplicação?
@@ -121,6 +137,7 @@ Este projeto foi desenvolvido com um foco estratégico:
    - Configuração segura de Security Groups
    - Integração ELB + EC2 + EFS
    - Deploy automatizado com systemd
+   - Health checks e auto-recovery
 
 2. **Aplicação é Suporte** 🛠️
    - Simples o suficiente para testar a infraestrutura
@@ -141,38 +158,57 @@ Este projeto foi desenvolvido com um foco estratégico:
 - ✅ Load Balancing com ELB/ALB
 - ✅ Armazenamento centralizado com EFS
 - ✅ Health Checks e Auto-recovery
-- ✅ Deploy manual (fundação para IaC)
+- ✅ Deploy manual e automação com systemd
 
 **Aplicação Web (IA Assistida):**
-- ✅ Conceitos Flask
+- ✅ Framework Flask
 - ✅ Estrutura REST API
 - ✅ Frontend responsivo
 - ✅ Boas práticas de segurança
+- ✅ Integração com NFS
 
 ## 🔒 Segurança
 
 - ✅ Validação de caminhos para prevenir directory traversal
 - ✅ Security Groups restritivos (porta 2049 para NFS)
-- ✅ Limite de tamanho de arquivo (50 MB)
-- ✅ Extensões de arquivo permitidas whitelist
+- ✅ Limite de tamanho de arquivo (1GB)
+- ✅ Nomes de arquivo sanitizados com `secure_filename`
 - ✅ Sem exposição de caminhos internos
+- ✅ HTTPS recomendado (usar ACM + ALB)
 
 ## 📝 Fluxo de Uso
 
 ### 1. Upload
 ```
-Usuário → Interface Web → POST /api/upload → Flask → NFS
+Usuário → Interface Web → POST /api/upload → Flask → NFS (EFS)
 ```
 
 ### 2. Download
 ```
-Usuário → Interface Web → GET /api/download → Flask → NFS → Navegador
+Usuário → Interface Web → GET /api/download → Flask → NFS (EFS) → Navegador
 ```
 
-### 3. Listar
+### 3. Listar Arquivos
 ```
-Usuário → Interface Web → GET /api/files → Flask → NFS → JSON
+Usuário → Interface Web → GET /api/files → Flask → NFS (EFS) → JSON
 ```
+
+### 4. Health Check
+```
+Load Balancer → GET /api/health → Flask → JSON (200 OK)
+```
+
+## 📋 Endpoints da API
+
+| Método | Endpoint | Descrição | Status |
+|--------|----------|-----------|--------|
+| GET | `/` | Interface web | 200 |
+| GET | `/api/health` | Health check para Load Balancer | 200 |
+| POST | `/api/upload` | Upload de arquivo | 201 |
+| GET | `/api/files` | Listar todos os arquivos | 200 |
+| GET | `/api/download/<filename>` | Download de arquivo | 200 |
+| DELETE | `/api/delete/<filename>` | Deletar arquivo | 200 |
+| GET | `/api/info` | Informações do sistema | 200 |
 
 ## ⏱️ Tempo para Completar
 
@@ -182,9 +218,42 @@ Usuário → Interface Web → GET /api/files → Flask → NFS → JSON
 
 **Total**: ~1 hora
 
+## 🧪 Testando Localmente
+
+Antes de fazer deploy em produção, você pode testar localmente:
+
+### 1. Clonar repositório
+```bash
+git clone https://github.com/GusVitor/nfs-file-manager.git
+cd nfs-file-manager
+```
+
+### 2. Criar virtual environment
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 3. Instalar dependências
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Executar aplicação
+```bash
+python3 app.py
+```
+
+### 5. Acessar
+```
+http://localhost:8000
+```
+
 ## 🐛 Troubleshooting
 
-Consulte a seção de troubleshooting em [DEPLOYMENT.md](./DEPLOYMENT.md)
+Consulte as seções de troubleshooting em:
+- **[SETUP-AWS.md](./SETUP-AWS.md)** - Problemas com infraestrutura AWS
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Problemas com deploy e execução
 
 ## 💡 Aprendizados Principais
 
@@ -194,11 +263,13 @@ Este projeto demonstra minha capacidade de:
    - Planejamento de infraestrutura escalável
    - Segurança em camadas (VPC, SGs, NFS)
    - Load balancing e distribuição de tráfego
+   - Multi-AZ deployment para alta disponibilidade
 
 2. **DevOps & Deployment** 🚀
    - Automação com systemd
    - Configuração de serviços Linux
-   - Monitoramento básico
+   - Monitoramento e health checks
+   - Reverse proxy com Nginx
 
 3. **Decisões de Projeto** 📊
    - Quando usar IA vs. desenvolver manualmente
@@ -209,6 +280,17 @@ Este projeto demonstra minha capacidade de:
    - Componentes AWS trabalhando juntos
    - NFS como storage centralizado
    - ELB distribuindo tráfego
+   - Multi-instância deployment
+
+## 📈 Próximos Passos (Opcional)
+
+- Adicionar HTTPS/SSL (usar ACM + ALB)
+- Implementar autenticação (JWT/OAuth)
+- Adicionar banco de dados para logs
+- Implementar quotas de espaço por usuário
+- Auto Scaling com Launch Templates
+- CloudWatch monitoring e alarms
+- S3 backup automático do EFS
 
 ## 📝 Licença
 
