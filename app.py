@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 import json
 from datetime import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 
 # Configuração
 UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', '/root/File_SYSTEM/upload')
@@ -50,7 +50,7 @@ def upload_file():
                 'filename': filename,
                 'path': filepath,
                 'timestamp': datetime.now().isoformat()
-            }), 200
+            }), 201
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -60,23 +60,32 @@ def list_files():
     """Listar arquivos do diretório upload"""
     try:
         files = []
+        total_size = 0
+        
         for filename in os.listdir(app.config['UPLOAD_FOLDER']):
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             if os.path.isfile(filepath):
                 size = os.path.getsize(filepath)
+                total_size += size
                 mtime = os.path.getmtime(filepath)
                 files.append({
                     'name': filename,
                     'size': size,
+                    'size_human': format_file_size(size),
                     'modified': datetime.fromtimestamp(mtime).isoformat()
                 })
         
-        return jsonify({'files': files, 'count': len(files)}), 200
+        return jsonify({
+            'files': files,
+            'total_files': len(files),
+            'total_size': total_size,
+            'total_size_human': format_file_size(total_size)
+        }), 200
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/files/<filename>', methods=['DELETE'])
+@app.route('/api/delete/<filename>', methods=['DELETE'])
 def delete_file(filename):
     """Deletar arquivo"""
     try:
@@ -87,6 +96,21 @@ def delete_file(filename):
         
         os.remove(filepath)
         return jsonify({'message': 'Arquivo deletado com sucesso'}), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/download/<filename>', methods=['GET'])
+def download_file(filename):
+    """Download de arquivo"""
+    try:
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(filename))
+        
+        if not os.path.exists(filepath):
+            return jsonify({'error': 'Arquivo não encontrado'}), 404
+        
+        from flask import send_file
+        return send_file(filepath, as_attachment=True, download_name=filename)
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -110,6 +134,19 @@ def system_info():
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+def format_file_size(bytes):
+    """Formata tamanho de arquivo em unidades legíveis"""
+    if bytes == 0:
+        return '0 B'
+    
+    size_units = ('B', 'KB', 'MB', 'GB', 'TB')
+    i = 0
+    while bytes >= 1024 and i < len(size_units) - 1:
+        bytes /= 1024
+        i += 1
+    
+    return f'{bytes:.1f} {size_units[i]}'
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=False)
